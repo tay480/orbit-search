@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ki Clash</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #101729; color: white; font: 16px system-ui; text-align: center; touch-action: none; }
+  h1 { margin: 10px 0 2px; color: #ffd45c; }
+  p { margin: 0 0 8px; color: #c8d1e5; }
+  canvas { display: block; width: 100%; max-width: 800px; height: auto; margin: auto; background: linear-gradient(#24385b 0 70%, #b65b35 70%); border: 2px solid #fff4; }
+  #controls { display: flex; justify-content: space-around; gap: 8px; max-width: 800px; margin: 12px auto; }
+  button { flex: 1; min-height: 58px; border: 0; border-radius: 14px; background: #263b63; color: white; font-size: 18px; font-weight: bold; touch-action: none; }
+  button:active { background: #e58b32; }
+  #status { min-height: 24px; color: #ffe085; font-weight: bold; }
+</style>
+<h1>KI CLASH</h1>
+<p>Move, then punch or fire a ki blast. First to zero loses!</p>
+<canvas id="game" width="800" height="420"></canvas>
+<div id="status">Fight!</div>
+<div id="controls">
+  <button data-key="left">◀</button><button data-key="right">▶</button>
+  <button data-key="punch">PUNCH</button><button data-key="blast">KI BLAST</button>
+</div>
+<script>
+const c = document.querySelector("#game"), ctx = c.getContext("2d");
+const status = document.querySelector("#status");
+const held = {};
+const player = { x: 140, hp: 100, color: "#38a9ff", attack: 0, cooldown: 0 };
+const cpu = { x: 660, hp: 100, color: "#ff4f67", attack: 0, cooldown: 0 };
+let blasts = [], ended = false, frame = 0;
+
+document.querySelectorAll("button").forEach(button => {
+  const key = button.dataset.key;
+  button.addEventListener("pointerdown", e => { e.preventDefault(); held[key] = true; });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(type =>
+    button.addEventListener(type, () => held[key] = false));
+});
+addEventListener("keydown", e => {
+  if (["ArrowLeft","ArrowRight","a","d","j","k"].includes(e.key)) e.preventDefault();
+  held[e.key] = true;
+});
+addEventListener("keyup", e => held[e.key] = false);
+
+function fighter(f, name) {
+  ctx.fillStyle = f.color;
+  ctx.fillRect(f.x - 18, 245, 36, 82);             // body
+  ctx.beginPath(); ctx.arc(f.x, 225, 21, 0, 7); ctx.fill(); // head
+  ctx.fillStyle = "#182033";
+  ctx.fillRect(f.x - 12, 220, 7, 4); ctx.fillRect(f.x + 5, 220, 7, 4);
+  ctx.fillStyle = "#fff"; ctx.font = "16px system-ui"; ctx.textAlign = "center";
+  ctx.fillText(name, f.x, 354);
+  if (f.attack > 0) {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(f.x + (f === player ? 18 : -48), 265, 30, 12);
+  }
+}
+function bar(x, hp, color, label, flip=false) {
+  ctx.fillStyle="#151a28"; ctx.fillRect(x, 24, 260, 22);
+  ctx.fillStyle=color;
+  ctx.fillRect(flip ? x + 260 - hp*2.6 : x, 24, hp*2.6, 22);
+  ctx.strokeStyle="white"; ctx.strokeRect(x,24,260,22);
+  ctx.fillStyle="white"; ctx.textAlign=flip?"right":"left"; ctx.font="15px system-ui";
+  ctx.fillText(`${label}  ${Math.ceil(hp)}%`, flip?x+260:x, 18);
+}
+function hit(target, damage) {
+  target.hp = Math.max(0, target.hp - damage);
+  if (target.hp === 0) {
+    ended = true;
+    status.textContent = target === cpu ? "You win! Tap the screen to rematch." : "CPU wins! Tap the screen to rematch.";
+  }
+}
+function reset() {
+  player.x=140; player.hp=100; cpu.x=660; cpu.hp=100;
+  blasts=[]; ended=false; status.textContent="Fight!";
+}
+c.addEventListener("pointerdown", () => { if (ended) reset(); });
+
+function loop() {
+  frame++;
+  ctx.clearRect(0,0,800,420);
+
+  // Ground and scenery
+  ctx.fillStyle="#603c38"; ctx.fillRect(0,294,800,126);
+  ctx.fillStyle="#ffd45c"; ctx.beginPath(); ctx.arc(680,100,35,0,7); ctx.fill();
+  bar(24, player.hp, "#38a9ff", "HERO");
+  bar(516, cpu.hp, "#ff4f67", "RIVAL", true);
+
+  if (!ended) {
+    if (held.left || held.ArrowLeft || held.a) player.x -= 4;
+    if (held.right || held.ArrowRight || held.d) player.x += 4;
+    player.x = Math.max(35, Math.min(765, player.x));
+
+    if (player.cooldown > 0) player.cooldown--;
+    if ((held.punch || held.j) && player.cooldown === 0) {
+      player.attack=8; player.cooldown=24;
+      if (Math.abs(player.x-cpu.x)<75) hit(cpu, 8);
+    }
+    if ((held.blast || held.k) && player.cooldown === 0) {
+      blasts.push({x:player.x+25, y:270, speed:8});
+      player.cooldown=42;
+    }
+
+    // Simple rival AI: approach and occasionally attack
+    if (cpu.x > player.x+62) cpu.x -= 1.3;
+    else if (cpu.x < player.x+45) cpu.x += 1.3;
+    if (cpu.cooldown > 0) cpu.cooldown--;
+    if (Math.abs(cpu.x-player.x)<65 && cpu.cooldown===0) {
+      cpu.attack=8; cpu.cooldown=48; hit(player, 5);
+    }
+    if (player.attack>0) player.attack--;
+    if (cpu.attack>0) cpu.attack--;
+  }
+
+  blasts = blasts.filter(b => b.x < 820);
+  for (const b of blasts) {
+    b.x += b.speed;
+    ctx.fillStyle="#8ffcff"; ctx.beginPath(); ctx.arc(b.x,b.y,12,0,7); ctx.fill();
+    if (!ended && Math.abs(b.x-cpu.x)<24) { hit(cpu,14); b.x=900; }
+  }
+  fighter(player,"HERO"); fighter(cpu,"RIVAL");
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</html>
