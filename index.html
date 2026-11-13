@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="Orbit Search is your custom search homepage.">
+  <title>Orbit Search</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1220;
+      --panel: #141f33;
+      --line: #293a57;
+      --muted: #9eacc4;
+      --text: #f4f7ff;
+      --accent: #77d7c2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background: radial-gradient(ellipse at 50% 10%, #1d3554 0, var(--bg) 55%);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(850px, 92vw);
+      margin: auto;
+      padding: 42px 0 70px;
+      text-align: center;
+    }
+
+    .icon {
+      margin-bottom: 8px;
+      font-size: 32px;
+    }
+
+    .logo {
+      margin: 0;
+      font-size: clamp(42px, 8vw, 68px);
+      font-weight: 900;
+      letter-spacing: -3px;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .tag {
+      margin: 8px 0 28px;
+      color: var(--muted);
+    }
+
+    form {
+      display: flex;
+      gap: 8px;
+      max-width: 720px;
+      margin: auto;
+      padding: 7px;
+      border-radius: 17px;
+      background: #f7f9ff;
+      box-shadow: 0 14px 45px #0007;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 14px;
+      border: 0;
+      outline: 0;
+      color: #142039;
+      background: transparent;
+      font: inherit;
+      font-size: 17px;
+    }
+
+    input::placeholder { color: #6c7890; }
+
+    button {
+      padding: 0 22px;
+      border: 0;
+      border-radius: 12px;
+      color: white;
+      background: #1d806f;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:hover { filter: brightness(1.12); }
+
+    button:focus-visible,
+    input:focus-visible,
+    .shortcut:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .shortcuts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .shortcut {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: #dce8f8;
+      background: #17253b;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .shortcut:hover { background: #203451; }
+
+    .info {
+      max-width: 600px;
+      margin: 34px auto 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    footer {
+      padding: 15px;
+      color: #7e8ca5;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 520px) {
+      form { gap: 4px; padding: 5px; }
+      input { padding: 11px 8px; font-size: 15px; }
+      button { padding: 0 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="icon" aria-hidden="true">🌌</div>
+    <h1 class="logo">orbit<span>search</span></h1>
+    <p class="tag">A little corner of the internet. Search anything.</p>
+
+    <form id="searchForm" action="https://duckduckgo.com/" method="get">
+      <input
+        id="q"
+        name="q"
+        type="search"
+        placeholder="What are you looking for?"
+        autocomplete="off"
+        autofocus
+        aria-label="Search the web"
+      >
+      <button type="submit">Search ↗</button>
+    </form>
+
+    <nav class="shortcuts" aria-label="Popular websites">
+      <a class="shortcut" href="https://www.wikipedia.org/">📚 Wikipedia</a>
+      <a class="shortcut" href="https://www.youtube.com/">▶ YouTube</a>
+      <a class="shortcut" href="https://www.google.com/">G Google</a>
+      <a class="shortcut" href="https://www.bing.com/">✦ Bing</a>
+    </nav>
+
+    <p class="info">
+      Orbit Search is your custom search homepage. Search results are provided
+      by DuckDuckGo, so you get live web results without needing to build and
+      maintain your own internet-wide search index.
+    </p>
+  </main>
+
+  <footer>ORBIT SEARCH • Your homepage, your way</footer>
+
+  <script>
+    const searchForm = document.getElementById("searchForm");
+    const searchInput = document.getElementById("q");
+
+    searchForm.addEventListener("submit", (event) => {
+      if (!searchInput.value.trim()) {
+        event.preventDefault();
+        searchInput.focus();
+      }
+    });
+  </script>
+</body>
+</html>
